@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sort"
+  "strings"
 
 	"github.com/drone/drone-go/drone"
 	"github.com/drone/drone-go/plugin"
@@ -79,20 +80,29 @@ func main() {
 
 	// if the job is complete and is NOT a pull
 	// request we should re-build the cache.
-	if isSuccess(&job) && build.Event == drone.EventPush {
+	if build.Event == drone.EventPush {
 
 		for _, mount := range vargs.Mount {
-			// unique hash for the file
-			hash_ := hash(mount, build.Branch, job.Environment)
-			fmt.Println("Building cache", mount)
+      force := false
 
-			// rebuild
-			err := rebuild(hash_, mount, vargs.Archive)
-			if err != nil {
-				fmt.Printf("Unable to rebuild cache for %s. %s\n", mount, err)
-			}
-			// purges previously cached files
-			purge(hash_, vargs.Archive, 1)
+      if strings.HasSuffix(mount, "!") {
+        force = true
+        mount = mount[:len(mount)-1]
+      }
+
+      if isSuccess(&job) && !force {
+  			// unique hash for the file
+  			hash_ := hash(mount, build.Branch, job.Environment)
+  			fmt.Println("Building cache", mount)
+
+  			// rebuild
+  			err := rebuild(hash_, mount, vargs.Archive)
+  			if err != nil {
+  				fmt.Printf("Unable to rebuild cache for %s. %s\n", mount, err)
+  			}
+  			// purges previously cached files
+  			purge(hash_, vargs.Archive, 1)
+      }
 		}
 	}
 }
