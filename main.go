@@ -45,6 +45,11 @@ func main() {
 	if isRunning(&job) {
 
 		for _, mount := range vargs.Mount {
+
+      if strings.HasSuffix(mount, "!") {
+        mount = mount[:len(mount)-1]
+      }
+
 			// unique hash for the file
 			hash_ := hash(mount, build.Branch, job.Environment)
 			fmt.Println("Restoring cache", mount)
