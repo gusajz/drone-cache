@@ -95,7 +95,7 @@ func main() {
         mount = mount[:len(mount)-1]
       }
 
-      if isSuccess(&job) && !force {
+      if isSuccess(&job) || force {
   			// unique hash for the file
   			hash_ := hash(mount, build.Branch, job.Environment)
   			fmt.Println("Building cache", mount)
